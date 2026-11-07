@@ -16,6 +16,7 @@ void worker_thread() //작업 스레드.
 
 int main()
 {
+	//--------------------------------------------------------------서버 초기화--------------------------------------------------
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return 1;
     SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -24,14 +25,14 @@ int main()
     serveraddr.sin_family = AF_INET;
     serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
     serveraddr.sin_port = htons(PORT);
-
+    
     if (bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr)) == SOCKET_ERROR)
         err_quit("bind()");
     if (listen(listen_sock, SOMAXCONN) == SOCKET_ERROR) err_quit("listen()");
-
-    InitializeCriticalSection(&cs);
-
-
+	//-------------------------------------------------------------------------------------------------------------------------
+	InitializeCriticalSection(&cs); // 크리티컬 섹션 초기화
+	HANDLE worker = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)worker_thread, NULL, 0, NULL); //작업 스레드 생성
+    
     while (1) {
 		for (auto it = threads.begin(); it != threads.end();) {
             if (WaitForSingleObject(*it, 0) == WAIT_OBJECT_0) { 

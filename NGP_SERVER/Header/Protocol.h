@@ -28,26 +28,30 @@ enum PACKET_TYPE {
 struct C2S_MoveInfo {	//C2S_MOVEINFO
 	unsigned char size;
 	PACKET_TYPE   type;
-	short player_id;
-	short x;
-	short y;
+	short player_id; // 플레이어 ID
+	short x;		// 플레이어 위치 X
+	short y;		// 플레이어 위치 Y
 };
 
 struct C2S_ShootInfo {	//C2S_SHOOTINFO
 	unsigned char size;
 	PACKET_TYPE   type;
+	short player_id;
+	short x;		// 발사 위치 X
+	short y;		// 발사 위치 Y
 };
 
 struct C2S_ChatInfo {	//C2S_CHATINFO
 	unsigned char size;
 	PACKET_TYPE   type;
-	short player_id;
-	char msg[MAX_CHAT_MSG_LEN];
+	short player_id;		// 플레이어 ID
+	char msg[MAX_CHAT_MSG_LEN]; // 채팅 메시지
 };
 
 struct C2S_ForwardInfo {	//C2S_FORWARDINFO
 	unsigned char size;
 	PACKET_TYPE   type;
+	short player_id;		// 플레이어 ID
 };
 
 struct C2S_Reloading {	//C2S_RELOADING
