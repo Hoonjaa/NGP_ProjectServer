@@ -1,8 +1,6 @@
 #pragma once
 
-#include <winsock2.h>
-#include <windows.h>
-#include <queue>
+#include "Header/Common.h"
 #include <system_error>
 
 template <typename T>

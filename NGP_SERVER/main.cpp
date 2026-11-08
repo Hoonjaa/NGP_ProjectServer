@@ -1,5 +1,5 @@
-#include "Header/Common.h"
 #include "Header/Protocol.h"
+#include "Header/JobContainer.h"
 // --------------------------------------------------------------전역변수--------------------------------------------------
 CRITICAL_SECTION cs;
 std::vector<HANDLE> threads;
