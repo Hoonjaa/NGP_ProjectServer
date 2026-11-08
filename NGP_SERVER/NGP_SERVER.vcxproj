@@ -123,13 +123,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="JobContainer.cpp" />
+    <ClCompile Include="ClientThread.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="WorkerThread.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Header\ClientThread.h" />
     <ClInclude Include="Header\Common.h" />
+    <ClInclude Include="Header\JobContainer.h" />
     <ClInclude Include="Header\Protocol.h" />
-    <ClInclude Include="JobContainer.h" />
+    <ClInclude Include="Header\ServerTypes.h" />
+    <ClInclude Include="Header\WorkerThread.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

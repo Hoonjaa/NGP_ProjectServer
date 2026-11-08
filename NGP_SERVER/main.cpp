@@ -1,19 +1,12 @@
+#include "Header/ClientThread.h"
 #include "Header/Protocol.h"
-#include "Header/JobContainer.h"
+#include "Header/ServerTypes.h"
+#include "Header/WorkerThread.h"
+#include <memory>
 // --------------------------------------------------------------전역변수--------------------------------------------------
 CRITICAL_SECTION cs;
 std::vector<HANDLE> threads;
 //-------------------------------------------------------------------------------------------------------------------------
-DWORD WINAPI ProcessClient(LPVOID arg) //클라이언트 연결 스레드가 수행할 함수.
-{
-
-}
-
-void worker_thread() //작업 스레드.
-{
-
-}
-
 int main()
 {
 	//--------------------------------------------------------------서버 초기화--------------------------------------------------
@@ -31,9 +24,11 @@ int main()
     if (listen(listen_sock, SOMAXCONN) == SOCKET_ERROR) err_quit("listen()");
 	//-------------------------------------------------------------------------------------------------------------------------
 	InitializeCriticalSection(&cs); // 크리티컬 섹션 초기화
-	HANDLE worker = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)worker_thread, NULL, 0, NULL); //작업 스레드 생성
-    
+	JobContainer<PacketJob> Work_Container; // 클라별 스레드들이 패킷을 받으면 이 컨테이너에 작업을 넣음. 작업 스레드가 이 컨테이너에서 작업을 꺼내 처리함.
+	HANDLE worker = CreateThread(NULL, 0, worker_thread, NULL, 0, NULL); //작업 스레드 생성
+
     while (1) {
+		// 종료된 스레드 핸들 닫고 벡터에서 제거
 		for (auto it = threads.begin(); it != threads.end();) {
             if (WaitForSingleObject(*it, 0) == WAIT_OBJECT_0) { 
                 CloseHandle(*it);
@@ -42,13 +37,20 @@ int main()
             else ++it;
         }
 
+		// 클라이언트 연결 수락, 완료 컨테이너 생성
         struct sockaddr_in clientaddr = {};
         int addrlen = sizeof(clientaddr);
         SOCKET client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
         if (client_sock == INVALID_SOCKET) break;
-        HANDLE clientThread = CreateThread(NULL, 0, ProcessClient, (LPVOID)client_sock, 0, NULL); //클라이언트별 스레드 생성
 
-        if (clientThread == NULL) closesocket(client_sock);
+        auto session = std::make_unique<ClientSession>();
+        session->socket = client_sock;
+        ClientSession* session_arg = session.release();
+        HANDLE clientThread = CreateThread(NULL, 0, ProcessClient, session_arg, 0, NULL);
+        if (clientThread == NULL) {
+            session.reset(session_arg);
+            closesocket(client_sock);
+        }
         else threads.push_back(clientThread);
     }
 
