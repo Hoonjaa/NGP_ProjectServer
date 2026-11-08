@@ -25,7 +25,7 @@ int main()
 	//-------------------------------------------------------------------------------------------------------------------------
 	InitializeCriticalSection(&cs); // 크리티컬 섹션 초기화
 	JobContainer<PacketJob> Work_Container; // 클라별 스레드들이 패킷을 받으면 이 컨테이너에 작업을 넣음. 작업 스레드가 이 컨테이너에서 작업을 꺼내 처리함.
-	HANDLE worker = CreateThread(NULL, 0, worker_thread, NULL, 0, NULL); //작업 스레드 생성
+	HANDLE worker = CreateThread(NULL, 0, worker_thread, &Work_Container, 0, NULL); //작업 스레드 생성
 
     while (1) {
 		// 종료된 스레드 핸들 닫고 벡터에서 제거
@@ -45,6 +45,7 @@ int main()
 
         auto session = std::make_unique<ClientSession>();
         session->socket = client_sock;
+		session->workContainer = &Work_Container;
         ClientSession* session_arg = session.release();
         HANDLE clientThread = CreateThread(NULL, 0, ProcessClient, session_arg, 0, NULL);
         if (clientThread == NULL) {

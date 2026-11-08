@@ -5,9 +5,8 @@
 
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
-    std::unique_ptr<ClientSession> session(static_cast<ClientSession*>(arg));
-
-    // Client receive and send loop goes here.
+    std::shared_ptr<ClientSession> session(static_cast<ClientSession*>(arg));
+	session->workContainer->job_push(PacketJob{ session->socket, std::vector<unsigned char>() }); 
     closesocket(session->socket);
     return 0;
 }
