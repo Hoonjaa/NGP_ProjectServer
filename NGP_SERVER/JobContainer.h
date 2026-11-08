@@ -62,7 +62,7 @@ public:
         }
     }
 
-	bool job_pop(T& job) // 작업을 큐에서 제거하고 job에 할당, 큐가 비어있으면 대기
+	bool job_pop(T& job)
     {
         return WaitPop(job);
     }
@@ -106,8 +106,19 @@ private:
         return true;
     }
 
-    std::queue<T> jobs_;
+	std::queue<T> jobs_;  // jobs_ 큐를 사용하여 작업을 저장 job은 T 타입의 객체를 저장하는 큐
     CRITICAL_SECTION section_;
     HANDLE ready_;
     bool stopped_ = false;
 };
+
+/*
+ jobs_는 큐임
+공용 작업 컨테이너 1개를 클라이언트 스레드들이 공유 -> 작업 컨테이너.
+모두 같은 jobs_에 job_push()하고, 워커가 그 큐에서 WaitPop()으로 꺼내기
+
+클라이언트별 완료 컨테이너는 접속마다 하나씩 생성 -> 작업 완료 개별 컨테이너.
+각 컨테이너에 별도의 jobs_가 있으므로, 워커가 클라이언트 A의 완료 큐에 넣은 결과는 A의 송신 쪽에서 꺼내기
+WaitPop()은 큐에 작업이 있는지 확인하고, 있으면 pop_front()로 맨 앞 작업을 꺼냄.
+어떤 패킷인지 식별하고 처리하는 건 WaitPop()이 반환한 뒤 워커 스레드가 하는 일.
+*/
