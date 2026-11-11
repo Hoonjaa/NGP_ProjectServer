@@ -61,6 +61,8 @@ struct C2S_Reloading {	//C2S_RELOADING
 struct S2C_Chat {	//S2C_CHAT
 	unsigned char size;
 	PACKET_TYPE   type;
+	short player_id;		// 플레이어 ID
+	char msg[MAX_CHAT_MSG_LEN]; // 채팅 메시지
 };
 
 struct S2C_KillLog {	//S2C_KILLLOG 

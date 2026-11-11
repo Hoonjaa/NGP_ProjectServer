@@ -74,6 +74,8 @@ public:
         SetEvent(ready_);
     }
 
+	HANDLE GetReadyEvent() const { return ready_; } // 이벤트 핸들 반환
+
 private:
 	class Lock { // 크리티컬 섹션을 관리
     public:

@@ -1,5 +1,6 @@
 #pragma once
-
+#include <array>
+#include <memory>
 #include "JobContainer.h"
 
 struct PacketJob { // 클라이언트별 스레드가 패킷을 받으면 이 구조체에 넣어 작업 스레드로 넘김.
@@ -15,3 +16,7 @@ struct ClientSession { // 작업스레드가 패킷을 처리한 후 클라이언트별 스레드가 이
 	JobContainer<PacketJob>* workContainer; // 클라이언트 별 스레드가 패킷을 받으면 이 컨테이너에 작업을 넣어야함.
 	JobContainer<std::vector<unsigned char>> outgoing; // 출력	패킷을 저장하는 큐, 작업 스레드가 패킷을 처리한 후 클라이언트별 스레드가 이 큐에서 패킷을 꺼내 클라이언트로 전송
 };
+
+// extern 은 다른 소스 파일에서 정의된 전역 변수를 참조할 때 사용.
+extern CRITICAL_SECTION cs; // 클라이언트별 스레드가 패킷을 전송할 때 동기화에 사용
+extern std::array<std::shared_ptr<ClientSession>, 3> clients; // 클라이언트별 세션을 저장하는 배열
