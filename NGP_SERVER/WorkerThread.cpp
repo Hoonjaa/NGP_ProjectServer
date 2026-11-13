@@ -2,8 +2,11 @@
 #include "Header/ServerTypes.h"
 #include "Header/Protocol.h"
 #include "Header/Common.h"
+#include "PacketIO.h"
 #include <type_traits>
 #include <cstring>
+
+
 
 DWORD WINAPI worker_thread(LPVOID arg)
 {
@@ -35,36 +38,16 @@ DWORD WINAPI worker_thread(LPVOID arg)
 			job.packet.data() + sizeof(unsigned char),
 			sizeof(packetType)
 		);
-
-		if (packetType == C2S_CHATINFO) {
-			if(job.packet.size() != sizeof(C2S_ChatInfo))
-				continue;
-			C2S_ChatInfo chat{};
-
-			std::memcpy(&chat, job.packet.data(), sizeof(chat));// 패킷 데이터를 chat 구조체에 복사
-			// 이렇게 하는 이유는 패킷을 구조체로 변환하여 사용하면 코드가 더 직관적이고 유지보수가 쉬워지기 때문임.
-
-			S2C_Chat response{};
-			response.size = sizeof(response);
-			response.type = S2C_CHAT;
-			response.player_id = chat.player_id;
-			std::memcpy(response.msg, chat.msg, sizeof(chat.msg));
-
-			const unsigned char* begin = reinterpret_cast<const unsigned char*>(&response);
-
-			std::vector<unsigned char> responsePacket(begin, begin + sizeof(response));
-
-			std::array<std::shared_ptr<ClientSession>, 3> targets{};
-
-			EnterCriticalSection(&cs);
-			targets = clients;
-			LeaveCriticalSection(&cs);
-
-			for (const auto& target : targets) {
-				if (target && target->socket != job.client_sock) {
-					target->outgoing.job_push(responsePacket);
-				}
-			}
+		switch (packetType)
+		{
+		case C2S_CHATINFO:		C2S_RecvChatInfo(job);			break;
+		case C2S_MOVEINFO:		C2S_RecvMoveInfo(job);			break;
+		case C2S_SHOOTINFO:		C2S_RecvShootIngInfo(job);		break;
+		case C2S_FORWARDINFO:	C2S_RecvForwardInfo(job);		break;
+		case C2S_RELOADING:		C2S_RecvReloadingInfo(job);		break;
+		
+		default:
+			break;
 		}
 	}
 	return 0;

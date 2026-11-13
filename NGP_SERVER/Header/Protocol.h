@@ -98,6 +98,8 @@ struct S2C_OtherForward {	//S2C_OTHERFORWARD
 struct S2C_OtherMove {		//S2C_OTHERMOVE
 	unsigned char size;
 	PACKET_TYPE   type;
+	float			x;
+	float			z;
 };
 
 struct S2C_OtherBullet {	//S2C_OTHERBULLET
