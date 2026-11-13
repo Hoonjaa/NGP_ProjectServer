@@ -50,6 +50,13 @@ DWORD WINAPI worker_thread(LPVOID arg)
 			response.player_id = chat.player_id;
 			std::memcpy(response.msg, chat.msg, sizeof(chat.msg));
 
+			printf(
+				"Received chat from player %d: %.*s\n",
+				chat.player_id,
+				MAX_CHAT_MSG_LEN,
+				chat.msg
+			);
+
 			const unsigned char* begin = reinterpret_cast<const unsigned char*>(&response);
 
 			std::vector<unsigned char> responsePacket(begin, begin + sizeof(response));

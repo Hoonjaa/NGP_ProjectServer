@@ -28,16 +28,16 @@ struct C2S_MoveInfo {	//C2S_MOVEINFO
 	unsigned char size;
 	PACKET_TYPE   type;
 	short player_id; // 플레이어 ID
-	short x;		// 플레이어 위치 X
-	short y;		// 플레이어 위치 Y
+	float x;		// 플레이어 위치 X
+	float z;		// 플레이어 위치 Z
 };
 
 struct C2S_ShootInfo {	//C2S_SHOOTINFO
 	unsigned char size;
 	PACKET_TYPE   type;
 	short player_id;
-	short x;		// 발사 위치 X
-	short y;		// 발사 위치 Y
+	float x;		// 발사 위치 X
+	float z;		// 발사 위치 Z
 };
 
 struct C2S_ChatInfo {	//C2S_CHATINFO
