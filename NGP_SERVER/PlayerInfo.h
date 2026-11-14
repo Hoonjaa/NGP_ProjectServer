@@ -3,6 +3,9 @@
 #include <random>
 struct PlayerInfo {
 	PlayerInfo() {
+		PlayerID = 0;
+		name[0] = '\0';
+
 		Pos_x = rand() % 300;
 		Pos_y = rand() % 300;
 

@@ -98,8 +98,9 @@ struct S2C_OtherForward {	//S2C_OTHERFORWARD
 struct S2C_OtherMove {		//S2C_OTHERMOVE
 	unsigned char size;
 	PACKET_TYPE   type;
-	float			x;
-	float			z;
+	short player_id;		// 플레이어 ID
+	float x;				// 플레이어 위치 X
+	float y;				// 플레이어 위치 Y
 };
 
 struct S2C_OtherBullet {	//S2C_OTHERBULLET

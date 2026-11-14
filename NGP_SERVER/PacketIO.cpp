@@ -44,3 +44,31 @@ void C2S_RecvForwardInfo(PacketJob job) {}
 
 // ¹ÎÁ¦
 void C2S_RecvReloadingInfo(PacketJob job) {}
+
+void S2C_SendOtherMoveInfo()
+{
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+
+	for (const auto& source : targets) {
+		if (!source) continue;
+
+		const auto& player = source->player;
+		S2C_OtherMove response{};
+		response.size = sizeof(response);
+		response.type = S2C_OTHERMOVE;
+		response.player_id = static_cast<short>(player.PlayerID);
+		response.x = player.Pos_x;
+		response.y = player.Pos_y;
+
+		std::vector<unsigned char> responsepacket(sizeof(response));
+		std::memcpy(responsepacket.data(), &response, sizeof(response));
+
+		for (const auto& target : targets) {
+			if (target && target != source) {
+				target->outgoing.job_push(responsepacket);
+			}
+		}
+	}
+}

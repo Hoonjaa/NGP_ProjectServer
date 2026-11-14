@@ -2,6 +2,7 @@
 #include <array>
 #include <memory>
 #include "JobContainer.h"
+#include "PlayerInfo.h"
 
 struct PacketJob { // 클라이언트별 스레드가 패킷을 받으면 이 구조체에 넣어 작업 스레드로 넘김.
 	// 이렇게 구조체를 만들어서 넘기는 이유는, 작업 스레드가 패킷을 처리할 때 클라이언트 소켓이 필요하기 때문임.
@@ -15,6 +16,7 @@ struct ClientSession { // 작업스레드가 패킷을 처리한 후 클라이언트별 스레드가 이
 	SOCKET socket;      // 클라이언트 소켓
 	JobContainer<PacketJob>* workContainer; // 클라이언트 별 스레드가 패킷을 받으면 이 컨테이너에 작업을 넣어야함.
 	JobContainer<std::vector<unsigned char>> outgoing; // 출력	패킷을 저장하는 큐, 작업 스레드가 패킷을 처리한 후 클라이언트별 스레드가 이 큐에서 패킷을 꺼내 클라이언트로 전송
+	PlayerInfo player;
 };
 
 // extern 은 다른 소스 파일에서 정의된 전역 변수를 참조할 때 사용.
