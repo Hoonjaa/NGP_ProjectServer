@@ -3,16 +3,23 @@
 #include "Header/Protocol.h"
 #include "Header/Common.h"
 #include "PacketIO.h"
+#include "Timer.h"
 #include <type_traits>
 #include <cstring>
+#include <iostream>
 
+void Logic()
+{
 
+}
 
 DWORD WINAPI worker_thread(LPVOID arg)
 {
+	Timer logicTimer(60, Logic);
+
 	JobContainer<PacketJob>* workContainer = static_cast<JobContainer<PacketJob>*>(arg);
 	PacketJob job = {};
-	while(workContainer->WaitPop(job)) // 우선은 작업 스레드가 컨테이너에서 작업을 꺼내 처리하는 루프만 구현.
+	while(1) // 우선은 작업 스레드가 컨테이너에서 작업을 꺼내 처리하는 루프만 구현.
 	{
 		/*
 		재훈이가 서버클라 타이머 동기화 타이머 만들면
@@ -26,6 +33,11 @@ DWORD WINAPI worker_thread(LPVOID arg)
 			피격 결과를 대상 클라이언트의 완료 큐에 넣음
 		처럼 구현해야함.
 		*/
+		logicTimer.Update();
+		//std::cout << "Logic TPS: " << logicTimer.GetTPS() << std::endl;
+
+
+		workContainer->WaitPop(job);
 		const auto headerSize = sizeof(unsigned char) + sizeof(PACKET_TYPE);
 		if (job.packet.size() < headerSize)
 			continue;
