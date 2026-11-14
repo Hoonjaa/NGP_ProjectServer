@@ -20,7 +20,7 @@ struct PlayerInfo {
 		Respawn_time = 0;
 		Mujuck_time = 0;
 	}
-	int		PlayerID;
+	short	PlayerID;
 	char	name[10];
 
 	float	Pos_x;

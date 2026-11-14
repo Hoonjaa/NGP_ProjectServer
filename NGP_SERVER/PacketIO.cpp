@@ -2,7 +2,23 @@
 #include "Header/Protocol.h"
 
 // πŒ¡¶
-void C2S_RecvMoveInfo(PacketJob job) {}
+void C2S_RecvMoveInfo(PacketJob job) 
+{
+
+	if (job.packet.size() != sizeof(C2S_MoveInfo)) return;
+	C2S_MoveInfo response{};
+	std::memcpy(&response, job.packet.data(), sizeof(response));
+
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+	for (const auto& source : targets) {
+		if (!source || source->socket != job.client_sock) continue;
+		source->player.Pos_x = response.x;
+		source->player.Pos_y = response.z;
+	}
+	S2C_SendOtherMoveInfo();
+}
 
 // ¿Á»∆
 void C2S_RecvShootIngInfo(PacketJob job) {}
