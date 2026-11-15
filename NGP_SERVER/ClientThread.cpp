@@ -124,10 +124,10 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         // 할 일이 없을 때 이벤트를 기다려 빈 반복을 줄이기. 워커의 job_push가 즉시 깨우고,
         // 10ms가 지나도 깨어나 수신과 송신을 다시 시도
         if (!progressed && WaitForSingleObject(session->outgoing.GetReadyEvent(),
-                                               idleWaitMilliseconds) == WAIT_FAILED)
+            idleWaitMilliseconds) == WAIT_FAILED)
             break;
     }
-
+    
     session->outgoing.Stop();
     EnterCriticalSection(&cs);
     clients[slot].reset();
