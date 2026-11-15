@@ -1,6 +1,7 @@
 #pragma once
 #include "Header/ServerTypes.h"
 
+void C2S_RecvLoginInfo(PacketJob job);
 void C2S_RecvMoveInfo(PacketJob job);
 void C2S_RecvShootIngInfo(PacketJob job);
 void C2S_RecvChatInfo(PacketJob job);

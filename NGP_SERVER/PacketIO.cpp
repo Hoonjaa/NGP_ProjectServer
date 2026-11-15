@@ -2,6 +2,72 @@
 #include "Header/Protocol.h"
 
 // 민제
+void C2S_RecvLoginInfo(PacketJob job) {
+	if (job.packet.size() != sizeof(C2S_Login)) return;
+
+	C2S_Login login{};
+	std::memcpy(&login, job.packet.data(), sizeof(login));
+	if (login.size != sizeof(login) || login.type != C2S_LOGIN) return;
+
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+
+	std::shared_ptr<ClientSession> source;
+	std::array<bool, 3> usedIDs{};
+	for (const auto& target : targets) {
+		if (!target) continue;
+		if (target->socket == job.client_sock) source = target;
+		const short id = target->player.PlayerID;
+		if (id >= 0 && static_cast<std::size_t>(id) < usedIDs.size())
+			usedIDs[id] = true;
+	}
+
+	if (!source || source->player.PlayerID >= 0) return;
+	short playerID = -1;
+	for (std::size_t i = 0; i < usedIDs.size(); ++i) {
+		if (!usedIDs[i]) {
+			playerID = static_cast<short>(i);
+			break;
+		}
+	}
+	if (playerID < 0) return;
+
+	source->player.PlayerID = playerID;
+	std::memcpy(source->player.name, login.name, sizeof(source->player.name));
+	source->player.name[sizeof(source->player.name) - 1] = '\0';
+
+	const auto queuePacket = [](ClientSession& target, const auto& packet) {
+		std::vector<unsigned char> bytes(sizeof(packet));
+		std::memcpy(bytes.data(), &packet, sizeof(packet));
+		target.outgoing.job_push(bytes);
+	};
+
+	S2C_LoginResult result{}; // 로그인 결과를 새로 로그인한 클라이언트에게 전송
+	result.size = static_cast<unsigned char>(sizeof(result));
+	result.type = S2C_LOGINRESULT;
+	result.player_id = playerID;
+	queuePacket(*source, result);
+
+	S2C_OtherLogin newcomer{}; // 새로운 플레이어 정보를 다른 클라이언트에게 전송
+	newcomer.size = static_cast<unsigned char>(sizeof(newcomer));
+	newcomer.type = S2C_OTHERLOGIN;
+	newcomer.player_id = playerID;
+	std::memcpy(newcomer.name, source->player.name, sizeof(newcomer.name));
+
+	for (const auto& target : targets) {
+		if (!target || target == source || target->player.PlayerID < 0) continue;
+		queuePacket(*target, newcomer);
+
+		S2C_OtherLogin existing{}; // 기존 플레이어 정보를 새로 로그인한 클라이언트에게 전송
+		existing.size = static_cast<unsigned char>(sizeof(existing));
+		existing.type = S2C_OTHERLOGIN;
+		existing.player_id = target->player.PlayerID;
+		std::memcpy(existing.name, target->player.name, sizeof(existing.name));
+		queuePacket(*source, existing);
+	}
+}
+// 민제
 void C2S_RecvMoveInfo(PacketJob job) 
 {
 
@@ -57,7 +123,7 @@ void C2S_RecvChatInfo(PacketJob job)
 	LeaveCriticalSection(&cs);
 
 	for (const auto& target : targets) {
-		if (target && target->socket != job.client_sock) {
+		if (target && target->player.PlayerID >= 0 && target->socket != job.client_sock) {
 			target->outgoing.job_push(responsePacket);
 		}
 	}
@@ -76,7 +142,7 @@ void S2C_SendOtherMoveInfo()
 	LeaveCriticalSection(&cs);
 
 	for (const auto& source : targets) {
-		if (!source) continue;
+		if (!source || source->player.PlayerID < 0) continue;
 
 		const auto& player = source->player;
 		S2C_OtherMove response{};
@@ -90,7 +156,7 @@ void S2C_SendOtherMoveInfo()
 		std::memcpy(responsepacket.data(), &response, sizeof(response));
 
 		for (const auto& target : targets) {
-			if (target && target != source) {
+			if (target && target->player.PlayerID >= 0 && target != source) {
 				target->outgoing.job_push(responsepacket);
 			}
 		}

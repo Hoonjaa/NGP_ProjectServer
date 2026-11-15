@@ -3,7 +3,7 @@
 #include <random>
 struct PlayerInfo {
 	PlayerInfo() {
-		PlayerID = 0;
+		PlayerID = -1; // Not logged in yet.
 		name[0] = '\0';
 
 		Pos_x = rand() % 300;
