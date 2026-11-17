@@ -125,6 +125,7 @@
   <ItemGroup>
     <ClCompile Include="ClientThread.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="PlayerInfo.h" />
     <ClCompile Include="PacketIO.cpp" />
     <ClCompile Include="Timer.cpp" />
@@ -137,6 +138,7 @@
     <ClInclude Include="Header\Protocol.h" />
     <ClInclude Include="Header\ServerTypes.h" />
     <ClInclude Include="Header\WorkerThread.h" />
+    <ClInclude Include="Obstacle.h" />
     <ClInclude Include="PacketIO.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
