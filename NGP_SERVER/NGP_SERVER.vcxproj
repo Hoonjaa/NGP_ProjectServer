@@ -127,6 +127,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PlayerInfo.h" />
     <ClCompile Include="PacketIO.cpp" />
+    <ClCompile Include="Timer.cpp" />
     <ClCompile Include="WorkerThread.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -137,6 +138,7 @@
     <ClInclude Include="Header\ServerTypes.h" />
     <ClInclude Include="Header\WorkerThread.h" />
     <ClInclude Include="PacketIO.h" />
+    <ClInclude Include="Timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
