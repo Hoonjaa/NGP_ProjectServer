@@ -1,7 +1,6 @@
 #include "PacketIO.h"
 #include "Header/Protocol.h"
 
-// πŒ¡¶
 void C2S_RecvLoginInfo(PacketJob job) {
 	if (job.packet.size() != sizeof(C2S_Login)) return;
 
@@ -155,6 +154,28 @@ void S2C_SendOtherMoveInfo()
 		std::vector<unsigned char> responsepacket(sizeof(response));
 		std::memcpy(responsepacket.data(), &response, sizeof(response));
 
+		for (const auto& target : targets) {
+			if (target && target->player.PlayerID >= 0 && target != source) {
+				target->outgoing.job_push(responsepacket);
+			}
+		}
+	}
+}
+
+void S2C_SendPlayerHPInfo(short player_id, char damage)
+{
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+	for (const auto& source : targets) {
+		if (!source || source->player.PlayerID != player_id) continue;
+		S2C_HitInfo response{};
+		response.size = sizeof(response);
+		response.type = S2C_HITINFO;
+		response.player_id = player_id;
+		response.damege = damage;
+		std::vector<unsigned char> responsepacket(sizeof(response));
+		std::memcpy(responsepacket.data(), &response, sizeof(response));
 		for (const auto& target : targets) {
 			if (target && target->player.PlayerID >= 0 && target != source) {
 				target->outgoing.job_push(responsepacket);

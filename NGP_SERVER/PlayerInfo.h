@@ -1,6 +1,10 @@
 #include <iostream>
 #include <cstring>
 #include <random>
+#include <vector>
+
+class Bullet;
+
 struct PlayerInfo {
 	PlayerInfo() {
 		PlayerID = -1; // Not logged in yet.
@@ -36,4 +40,6 @@ struct PlayerInfo {
 
 	float	Respawn_time;
 	float	Mujuck_time;
+
+	std::vector<Bullet> bullets;
 };
