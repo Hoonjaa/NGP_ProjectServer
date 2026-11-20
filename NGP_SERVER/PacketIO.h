@@ -9,4 +9,4 @@ void C2S_RecvForwardInfo(PacketJob job);
 void C2S_RecvReloadingInfo(PacketJob job);
 
 void S2C_SendOtherMoveInfo();
-void S2C_SendPlayerHPInfo(short player_id, char damage);
+void S2C_SendPlayerHPInfo(short player_id, int HP);

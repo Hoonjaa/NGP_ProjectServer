@@ -41,5 +41,5 @@ struct PlayerInfo {
 	float	Respawn_time;
 	float	Mujuck_time;
 
-	std::vector<Bullet> bullets;
+	// std::vector<Bullet> bullets;
 };

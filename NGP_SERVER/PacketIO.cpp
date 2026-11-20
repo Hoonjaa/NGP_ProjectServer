@@ -121,11 +121,25 @@ void C2S_RecvChatInfo(PacketJob job)
 	targets = clients;
 	LeaveCriticalSection(&cs);
 
+	S2C_HitInfo hit{};
+	hit.size = sizeof(hit);
+	hit.type = S2C_HITINFO;
+	hit.player_id = response.player_id;
+	hit.HP = 10;
+	
+	std::vector<unsigned char> hitPacket(sizeof(hit));
+	std::memcpy(hitPacket.data(), &hit, sizeof(hit));
+
 	for (const auto& target : targets) {
 		if (target && target->player.PlayerID >= 0 && target->socket != job.client_sock) {
 			target->outgoing.job_push(responsePacket);
 		}
+		if (target ) {
+			target->outgoing.job_push(hitPacket);
+		}
 	}
+	
+
 }
 
 // ¹ÎÁ¦
@@ -162,18 +176,18 @@ void S2C_SendOtherMoveInfo()
 	}
 }
 
-void S2C_SendPlayerHPInfo(short player_id, char damage)
+void S2C_SendPlayerHPInfo(short player_id, int HP)
 {
 	EnterCriticalSection(&cs);
 	auto targets = clients;
 	LeaveCriticalSection(&cs);
 	for (const auto& source : targets) {
-		if (!source || source->player.PlayerID != player_id) continue;
+		if (!source ) continue;
 		S2C_HitInfo response{};
 		response.size = sizeof(response);
 		response.type = S2C_HITINFO;
 		response.player_id = player_id;
-		response.damege = damage;
+		response.HP = HP;
 		std::vector<unsigned char> responsepacket(sizeof(response));
 		std::memcpy(responsepacket.data(), &response, sizeof(response));
 		for (const auto& target : targets) {

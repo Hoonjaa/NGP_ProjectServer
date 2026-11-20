@@ -96,7 +96,7 @@ struct S2C_HitInfo {	//S2C_HITINFO
 	unsigned char size;
 	PACKET_TYPE   type;
 	short player_id;		// 플레이어 ID
-	char damege;			// 데미지량
+	int HP;			// 현재 HP
 };
 
 struct S2C_Death {	//S2C_DEATH
