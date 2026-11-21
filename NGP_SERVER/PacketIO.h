@@ -10,3 +10,4 @@ void C2S_RecvReloadingInfo(PacketJob job);
 
 void S2C_SendOtherMoveInfo();
 void S2C_SendPlayerHPInfo(short player_id, int HP);
+void S2C_SendOtherForwardInfo();

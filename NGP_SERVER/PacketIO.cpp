@@ -1,7 +1,9 @@
+#include <cmath>
 #include "PacketIO.h"
 #include "Header/Protocol.h"
 
-void C2S_RecvLoginInfo(PacketJob job) {
+void C2S_RecvLoginInfo(PacketJob job) 
+{
 	if (job.packet.size() != sizeof(C2S_Login)) return;
 
 	C2S_Login login{};
@@ -69,7 +71,6 @@ void C2S_RecvLoginInfo(PacketJob job) {
 // πŒ¡¶
 void C2S_RecvMoveInfo(PacketJob job) 
 {
-
 	if (job.packet.size() != sizeof(C2S_MoveInfo)) return;
 	C2S_MoveInfo response{};
 	std::memcpy(&response, job.packet.data(), sizeof(response));
@@ -143,7 +144,22 @@ void C2S_RecvChatInfo(PacketJob job)
 }
 
 // πŒ¡¶
-void C2S_RecvForwardInfo(PacketJob job) {}
+void C2S_RecvForwardInfo(PacketJob job) 
+{
+	if (job.packet.size() != sizeof(C2S_ForwardInfo)) return;
+	C2S_ForwardInfo response{};
+	std::memcpy(&response, job.packet.data(), sizeof(response));
+
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+	for (const auto& source : targets) { 
+		if (!source || source->socket != job.client_sock) continue;
+		source->player.pitch = response.pitch;
+		source->player.yaw = response.yaw;
+	}
+	S2C_SendOtherForwardInfo();
+}
 
 // πŒ¡¶
 void C2S_RecvReloadingInfo(PacketJob job) {}
@@ -188,6 +204,31 @@ void S2C_SendPlayerHPInfo(short player_id, int HP)
 		response.type = S2C_HITINFO;
 		response.player_id = player_id;
 		response.HP = HP;
+		std::vector<unsigned char> responsepacket(sizeof(response));
+		std::memcpy(responsepacket.data(), &response, sizeof(response));
+		for (const auto& target : targets) {
+			if (target && target->player.PlayerID >= 0 && target != source) {
+				target->outgoing.job_push(responsepacket);
+			}
+		}
+	}
+}
+
+void S2C_SendOtherForwardInfo()
+{
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+
+	for (const auto& source : targets) {
+		if (!source || source->player.PlayerID < 0) continue;
+		const auto& player = source->player;
+		S2C_OtherForward response{};
+		response.size = sizeof(response);
+		response.type = S2C_OTHERFORWARD;
+		response.player_id = static_cast<short>(player.PlayerID);
+		response.pitch = player.pitch;
+		response.yaw = player.yaw;
 		std::vector<unsigned char> responsepacket(sizeof(response));
 		std::memcpy(responsepacket.data(), &response, sizeof(response));
 		for (const auto& target : targets) {

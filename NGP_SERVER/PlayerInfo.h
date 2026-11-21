@@ -30,6 +30,9 @@ struct PlayerInfo {
 	float	Pos_x;
 	float	Pos_y;
 
+	float	pitch;
+	float	yaw;
+
 	float	HP;
 	int		Kill;
 	int		Death;
