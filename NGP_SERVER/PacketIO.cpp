@@ -126,7 +126,6 @@ void C2S_RecvChatInfo(PacketJob job)
 			target->outgoing.job_push(responsePacket);
 		}
 	}
-	S2C_SendDeathInfo(response.player_id, 0);
 }
 
 // πŒ¡¶
