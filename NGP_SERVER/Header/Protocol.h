@@ -104,16 +104,22 @@ struct S2C_HitInfo {	//S2C_HITINFO
 struct S2C_Death {	//S2C_DEATH
 	unsigned char size;
 	PACKET_TYPE   type;
+	short player_id;		// 플레이어 ID
+	short killer_id;		// 킬한 플레이어 ID
 };
 
 struct S2C_Respawn {	//S2C_REASPAWN
 	unsigned char size;
 	PACKET_TYPE   type;
+	short player_id;		// 플레이어 ID
+	float x;		// 리스폰 위치 X
+	float z;		// 리스폰 위치 Z
 };
 
 struct S2C_ReleaseInvincibility {	//S2C_RELEASEINVINCIBILITY
 	unsigned char size;
 	PACKET_TYPE   type;
+	short player_id;		// 플레이어 ID
 };
 
 struct S2C_OtherForward {	//S2C_OTHERFORWARD

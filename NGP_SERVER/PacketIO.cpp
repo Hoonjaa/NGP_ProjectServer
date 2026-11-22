@@ -83,7 +83,7 @@ void C2S_RecvMoveInfo(PacketJob job)
 		source->player.Pos_x = response.x;
 		source->player.Pos_y = response.z;
 	}
-	S2C_SendOtherMoveInfo();
+	S2C_SendOtherMoveInfo(response.player_id);
 }
 
 // ¿Á»∆
@@ -122,25 +122,11 @@ void C2S_RecvChatInfo(PacketJob job)
 	targets = clients;
 	LeaveCriticalSection(&cs);
 
-	S2C_HitInfo hit{};
-	hit.size = sizeof(hit);
-	hit.type = S2C_HITINFO;
-	hit.player_id = response.player_id;
-	hit.HP = 10;
-	
-	std::vector<unsigned char> hitPacket(sizeof(hit));
-	std::memcpy(hitPacket.data(), &hit, sizeof(hit));
-
 	for (const auto& target : targets) {
 		if (target && target->player.PlayerID >= 0 && target->socket != job.client_sock) {
 			target->outgoing.job_push(responsePacket);
 		}
-		if (target ) {
-			target->outgoing.job_push(hitPacket);
-		}
 	}
-	
-
 }
 
 // πŒ¡¶
@@ -164,32 +150,34 @@ void C2S_RecvForwardInfo(PacketJob job)
 // πŒ¡¶
 void C2S_RecvReloadingInfo(PacketJob job) {}
 
-void S2C_SendOtherMoveInfo()
+void S2C_SendOtherMoveInfo(short player_id)
 {
 	EnterCriticalSection(&cs);
 	auto targets = clients;
 	LeaveCriticalSection(&cs);
+	float x = 0.0f, y = 0.0f;
 
-	for (const auto& source : targets) {
-		if (!source || source->player.PlayerID < 0) continue;
-
-		const auto& player = source->player;
-		S2C_OtherMove response{};
-		response.size = sizeof(response);
-		response.type = S2C_OTHERMOVE;
-		response.player_id = static_cast<short>(player.PlayerID);
-		response.x = player.Pos_x;
-		response.y = player.Pos_y;
-
-		std::vector<unsigned char> responsepacket(sizeof(response));
-		std::memcpy(responsepacket.data(), &response, sizeof(response));
-
-		for (const auto& target : targets) {
-			if (target && target->player.PlayerID >= 0 && target != source) {
-				target->outgoing.job_push(responsepacket);
-			}
-		}
+	for (const auto& target : targets) {
+		if (!target || target->player.PlayerID < 0 || target->player.PlayerID != player_id) continue;
+		x = target->player.Pos_x;
+		y = target->player.Pos_y;
 	}
+
+	S2C_OtherMove response{};
+	response.size = sizeof(response);
+	response.type = S2C_OTHERMOVE;
+	response.player_id = static_cast<short>(player_id);
+	response.x = x;
+	response.y = y;
+
+	std::vector<unsigned char> responsepacket(sizeof(response));
+	std::memcpy(responsepacket.data(), &response, sizeof(response));
+
+	for (const auto& target : targets) {
+		if (target && target->player.PlayerID >= 0 && target->player.PlayerID != player_id) {
+			target->outgoing.job_push(responsepacket);
+		}
+	}	
 }
 
 void S2C_SendPlayerHPInfo(short player_id, int HP)
@@ -197,21 +185,79 @@ void S2C_SendPlayerHPInfo(short player_id, int HP)
 	EnterCriticalSection(&cs);
 	auto targets = clients;
 	LeaveCriticalSection(&cs);
-	for (const auto& source : targets) {
-		if (!source ) continue;
-		S2C_HitInfo response{};
-		response.size = sizeof(response);
-		response.type = S2C_HITINFO;
-		response.player_id = player_id;
-		response.HP = HP;
-		std::vector<unsigned char> responsepacket(sizeof(response));
-		std::memcpy(responsepacket.data(), &response, sizeof(response));
-		for (const auto& target : targets) {
-			if (target && target->player.PlayerID >= 0 && target != source) {
-				target->outgoing.job_push(responsepacket);
-			}
+	S2C_HitInfo response{};
+	response.size = sizeof(response);
+	response.type = S2C_HITINFO;
+	response.player_id = player_id;
+	response.HP = HP;
+	std::vector<unsigned char> responsepacket(sizeof(response));
+	std::memcpy(responsepacket.data(), &response, sizeof(response));
+	for (const auto& target : targets) {
+		if (target && target->player.PlayerID >= 0) {
+			target->outgoing.job_push(responsepacket);
 		}
 	}
+	
+}
+
+void S2C_SendDeathInfo(short player_id, short killer_id)
+{
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+	S2C_Death response{};
+	response.size = sizeof(response);
+	response.type = S2C_DEATH;
+	response.player_id = player_id;
+	response.killer_id = killer_id;
+	std::vector<unsigned char> responsepacket(sizeof(response));
+	std::memcpy(responsepacket.data(), &response, sizeof(response));
+	for (const auto& target : targets) {
+		if (target && target->player.PlayerID >= 0) {
+			target->outgoing.job_push(responsepacket);
+		}
+	}
+	
+}
+
+void S2C_SendRespawnInfo(short player_id, float x, float y)
+{
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+	S2C_Respawn response{};
+	response.size = sizeof(response);
+	response.type = S2C_REASPAWN;
+	response.player_id = player_id;
+	response.x = x;
+	response.z = y;
+	std::vector<unsigned char> responsepacket(sizeof(response));
+	std::memcpy(responsepacket.data(), &response, sizeof(response));
+	for (const auto& target : targets) {
+		if (target && target->player.PlayerID >= 0) {
+			target->outgoing.job_push(responsepacket);
+		}
+	}
+	
+}
+
+void S2C_SendReleaseInvincibilityInfo(short player_id)
+{
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+	S2C_ReleaseInvincibility response{};
+	response.size = sizeof(response);
+	response.type = S2C_RELEASEINVINCIBILITY;
+	response.player_id = player_id;
+	std::vector<unsigned char> responsepacket(sizeof(response));
+	std::memcpy(responsepacket.data(), &response, sizeof(response));
+	for (const auto& target : targets) {
+		if (target && target->player.PlayerID >= 0) {
+			target->outgoing.job_push(responsepacket);
+		}
+	}
+	
 }
 
 void S2C_SendOtherForwardInfo()
