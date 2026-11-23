@@ -4,6 +4,7 @@
 #include "Header/Common.h"
 #include "PacketIO.h"
 #include "Timer.h"
+#include "Collision.h"
 #include <type_traits>
 #include <cstring>
 #include <iostream>
@@ -34,6 +35,7 @@ DWORD WINAPI worker_thread(LPVOID arg)
 		처럼 구현해야함.
 		*/
 		logicTimer.Update();
+		CheckBulletPlayerCollision(clients);
 		//std::cout << "Logic TPS: " << logicTimer.GetTPS() << std::endl;
 
 

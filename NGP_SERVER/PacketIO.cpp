@@ -81,7 +81,8 @@ void C2S_RecvMoveInfo(PacketJob job)
 	for (const auto& source : targets) {
 		if (!source || source->socket != job.client_sock) continue;
 		source->player.Pos_x = response.x;
-		source->player.Pos_y = response.z;
+		source->player.Pos_z = response.z;
+		source->player.BB.center = float3(response.x, 2.5f, response.z);
 	}
 	S2C_SendOtherMoveInfo(response.player_id);
 }
@@ -155,12 +156,12 @@ void S2C_SendOtherMoveInfo(short player_id)
 	EnterCriticalSection(&cs);
 	auto targets = clients;
 	LeaveCriticalSection(&cs);
-	float x = 0.0f, y = 0.0f;
+	float x = 0.0f, z = 0.0f;
 
 	for (const auto& target : targets) {
 		if (!target || target->player.PlayerID < 0 || target->player.PlayerID != player_id) continue;
 		x = target->player.Pos_x;
-		y = target->player.Pos_y;
+		z = target->player.Pos_z;
 	}
 
 	S2C_OtherMove response{};
@@ -168,7 +169,7 @@ void S2C_SendOtherMoveInfo(short player_id)
 	response.type = S2C_OTHERMOVE;
 	response.player_id = static_cast<short>(player_id);
 	response.x = x;
-	response.y = y;
+	response.z = z;
 
 	std::vector<unsigned char> responsepacket(sizeof(response));
 	std::memcpy(responsepacket.data(), &response, sizeof(response));
