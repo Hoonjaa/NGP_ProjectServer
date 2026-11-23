@@ -1,6 +1,7 @@
 #include <cmath>
 #include "PacketIO.h"
 #include "Header/Protocol.h"
+#include "Collision.h"
 
 void C2S_RecvLoginInfo(PacketJob job) 
 {
@@ -80,6 +81,10 @@ void C2S_RecvMoveInfo(PacketJob job)
 	LeaveCriticalSection(&cs);
 	for (const auto& source : targets) {
 		if (!source || source->socket != job.client_sock) continue;
+		if (CheckPlayerObstacleCollision(response.x, response.z, source->player.BB.width*0.5f)) {
+			S2C_SendPlayerMoveInfo(response.player_id, source->player.Pos_x, source->player.Pos_z);
+			return;
+		}
 		source->player.Pos_x = response.x;
 		source->player.Pos_z = response.z;
 		source->player.BB.center = float3(response.x, 2.5f, response.z);
@@ -150,6 +155,29 @@ void C2S_RecvForwardInfo(PacketJob job)
 
 // πŒ¡¶
 void C2S_RecvReloadingInfo(PacketJob job) {}
+
+void S2C_SendPlayerMoveInfo(short player_id, float x, float z)
+{
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+
+	S2C_OtherMove response{};
+	response.size = sizeof(response);
+	response.type = S2C_OTHERMOVE;
+	response.player_id = static_cast<short>(player_id);
+	response.x = x;
+	response.z = z;
+
+	std::vector<unsigned char> responsepacket(sizeof(response));
+	std::memcpy(responsepacket.data(), &response, sizeof(response));
+
+	for (const auto& target : targets) {
+		if (target && target->player.PlayerID >= 0 && target->player.PlayerID == player_id) {
+			target->outgoing.job_push(responsepacket);
+		}
+	}
+}
 
 void S2C_SendOtherMoveInfo(short player_id)
 {

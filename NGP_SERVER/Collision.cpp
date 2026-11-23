@@ -1,5 +1,6 @@
 #include "Collision.h"
 #include "PacketIO.h"
+#include <algorithm>
 void CheckBulletPlayerCollision(std::array<std::shared_ptr<ClientSession>, 3> clients)
 {
 	for (std::shared_ptr<ClientSession> FirstPlayer : clients) {
@@ -33,4 +34,39 @@ void CheckBulletPlayerCollision(std::array<std::shared_ptr<ClientSession>, 3> cl
             }
         }
 	}
+}
+
+bool CheckPlayerObstacleCollision(float x, float z, float radius)
+{
+    static const Obstacle obstacles;
+
+    for (const auto& corners : obstacles.GetCorners()) {
+        if (IntersectsObstacle(x, z, radius, corners))
+            return true;
+    }
+
+    return false;
+}
+
+bool IntersectsObstacle(float x, float z, float radius, const Obstacle::Corner& corners)
+{
+    const auto& origin = corners[0];
+    const float dx = x - origin.x;
+    const float dz = z - origin.z;
+
+    const float ux = corners[1].x - origin.x;
+    const float uz = corners[1].z - origin.z;
+    const float vx = corners[3].x - origin.x;
+    const float vz = corners[3].z - origin.z;
+
+    // 각 변에서 0은 시작점, 1은 끝점입니다.
+    const float u = (dx * ux + dz * uz) / (ux * ux + uz * uz);
+    const float v = (dx * vx + dz * vz) / (vx * vx + vz * vz);
+    const float clampedU = (std::min)(1.0f, (std::max)(0.0f, u));
+    const float clampedV = (std::min)(1.0f, (std::max)(0.0f, v));
+
+    const float gapX = dx - (clampedU * ux + clampedV * vx);
+    const float gapZ = dz - (clampedU * uz + clampedV * vz);
+
+    return gapX * gapX + gapZ * gapZ <= radius * radius;
 }
