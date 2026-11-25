@@ -2,6 +2,7 @@
 #include <cstring>
 #include <random>
 #include <vector>
+#include <cmath>
 
 struct float3 {
 	float x;
@@ -32,6 +33,23 @@ struct Bullet {
 	BoundingBox BB;
 	BoundingBox GetBB() const {	return BB;}
 	void SetBB(float3 center, float w, float h) { BB = BoundingBox(center,w,h); }
+
+	float3 direction{ 0.0f, 0.0f, -1.0f };
+	float speed = 50.0f;
+	float lifeTime = 5.0f;
+	float currentTime = 0.0f;
+	void Update()
+	{
+		constexpr float tickSeconds = 1.0f / 60.0f;
+		const float distance = speed * tickSeconds;
+
+		position.x += direction.x * distance;
+		position.y += direction.y * distance;
+		position.z += direction.z * distance;
+
+		BB.center = position;
+		currentTime += tickSeconds;
+	}
 };
 
 
