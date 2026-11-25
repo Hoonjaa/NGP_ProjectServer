@@ -129,6 +129,7 @@
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="PlayerInfo.h" />
     <ClCompile Include="PacketIO.cpp" />
+    <ClCompile Include="SpawnPoints.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="WorkerThread.cpp" />
   </ItemGroup>
@@ -142,6 +143,7 @@
     <ClInclude Include="Header\WorkerThread.h" />
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="PacketIO.h" />
+    <ClInclude Include="SpawnPoints.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

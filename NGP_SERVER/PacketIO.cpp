@@ -2,6 +2,7 @@
 #include "PacketIO.h"
 #include "Header/Protocol.h"
 #include "Collision.h"
+#include "SpawnPoints.h"
 
 void C2S_RecvLoginInfo(PacketJob job) 
 {
@@ -35,26 +36,34 @@ void C2S_RecvLoginInfo(PacketJob job)
 	}
 	if (playerID < 0) return;
 
-	source->player.PlayerID = playerID;
+	SpawnPoint spawn{};
+	if (!TrySelectSpawnPoint(targets, spawn)) return;
+
+	source->player.SetPosition(spawn.x, spawn.z);
 	std::memcpy(source->player.name, login.name, sizeof(source->player.name));
 	source->player.name[sizeof(source->player.name) - 1] = '\0';
 
 	const auto queuePacket = [](ClientSession& target, const auto& packet) {
 		std::vector<unsigned char> bytes(sizeof(packet));
 		std::memcpy(bytes.data(), &packet, sizeof(packet));
-		target.outgoing.job_push(bytes);
+		return target.outgoing.job_push(bytes);
 	};
 
 	S2C_LoginResult result{}; // 로그인 결과를 새로 로그인한 클라이언트에게 전송
 	result.size = static_cast<unsigned char>(sizeof(result));
 	result.type = S2C_LOGINRESULT;
 	result.player_id = playerID;
-	queuePacket(*source, result);
+	result.x = spawn.x;
+	result.z = spawn.z;
+	if (!queuePacket(*source, result)) return;
+	source->player.PlayerID = playerID;
 
 	S2C_OtherLogin newcomer{}; // 새로운 플레이어 정보를 다른 클라이언트에게 전송
 	newcomer.size = static_cast<unsigned char>(sizeof(newcomer));
 	newcomer.type = S2C_OTHERLOGIN;
 	newcomer.player_id = playerID;
+	newcomer.x = spawn.x;
+	newcomer.z = spawn.z;
 	std::memcpy(newcomer.name, source->player.name, sizeof(newcomer.name));
 
 	for (const auto& target : targets) {
@@ -65,6 +74,8 @@ void C2S_RecvLoginInfo(PacketJob job)
 		existing.size = static_cast<unsigned char>(sizeof(existing));
 		existing.type = S2C_OTHERLOGIN;
 		existing.player_id = target->player.PlayerID;
+		existing.x = target->player.Pos_x;
+		existing.z = target->player.Pos_z;
 		std::memcpy(existing.name, target->player.name, sizeof(existing.name));
 		queuePacket(*source, existing);
 	}
@@ -85,9 +96,7 @@ void C2S_RecvMoveInfo(PacketJob job)
 			S2C_SendPlayerMoveInfo(response.player_id, source->player.Pos_x, source->player.Pos_z);
 			return;
 		}
-		source->player.Pos_x = response.x;
-		source->player.Pos_z = response.z;
-		source->player.BB.center = float3(response.x, 2.5f, response.z);
+		source->player.SetPosition(response.x, response.z);
 	}
 	S2C_SendOtherMoveInfo(response.player_id);
 }

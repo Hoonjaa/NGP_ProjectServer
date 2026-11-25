@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstring>
-#include <random>
+#include <cmath>
 #include <vector>
 
 struct float3 {
@@ -42,9 +42,7 @@ struct PlayerInfo {
 		PlayerID = -1; // Not logged in yet.
 		name[0] = '\0';
 
-		Pos_x = rand() % 300;
-		Pos_z = rand() % 300;
-		BB.center = float3(Pos_x, 2.5f, Pos_z);
+		SetPosition(0.0f, 0.0f);
 		BB.width = 3.0f;
 		BB.height = 5.0f;
 
@@ -57,9 +55,6 @@ struct PlayerInfo {
 
 		Respawn_time = 0;
 		Mujuck_time = 0;
-
-		Bullet bullet(float3(10, 0, 0), BoundingBox(float3(10, 0, 0), 1, 1));
-		bullets.push_back(bullet);
 	}
 	short	PlayerID;
 	char	name[10];
@@ -82,6 +77,14 @@ struct PlayerInfo {
 
 	std::vector<Bullet> bullets;
 	BoundingBox BB;
+
+	void SetPosition(float x, float z)
+	{
+		Pos_x = x;
+		Pos_z = z;
+		BB.center = float3(x, 2.5f, z);
+	}
+
 	BoundingBox GetBB() const { return BB; }
 	void SetBB(float3 center, float w, float h) { BB = BoundingBox(center, w, h); }
 };
