@@ -60,8 +60,8 @@ struct PlayerInfo {
 		PlayerID = -1; // Not logged in yet.
 		name[0] = '\0';
 
-		Pos_x = rand() % 300;
-		Pos_z = rand() % 300;
+		Pos_x = 0.0f; //임시
+		Pos_z = 6.0f; //임시
 		BB.center = float3(Pos_x, 2.5f, Pos_z);
 		BB.width = 3.0f;
 		BB.height = 5.0f;
@@ -102,4 +102,11 @@ struct PlayerInfo {
 	BoundingBox BB;
 	BoundingBox GetBB() const { return BB; }
 	void SetBB(float3 center, float w, float h) { BB = BoundingBox(center, w, h); }
+
+	unsigned char w = 0;
+	unsigned char a = 0;
+	unsigned char s = 0;
+	unsigned char d = 0;
+	float moveSpeed = 0.05f;
+	void Update();
 };

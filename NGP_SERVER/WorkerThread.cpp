@@ -9,11 +9,6 @@
 #include <cstring>
 #include <iostream>
 
-void Logic()
-{
-
-}
-
 DWORD WINAPI worker_thread(LPVOID arg)
 {
 	Timer logicTimer(60, Logic);
@@ -35,11 +30,10 @@ DWORD WINAPI worker_thread(LPVOID arg)
 		처럼 구현해야함.
 		*/
 		logicTimer.Update();
-		CheckBulletPlayerCollision(clients);
-		//std::cout << "Logic TPS: " << logicTimer.GetTPS() << std::endl;
+		std::cout << "Logic TPS: " << logicTimer.GetTPS() << std::endl;
 
 
-		workContainer->WaitPop(job);
+		workContainer->TryPop(job);
 		const auto headerSize = sizeof(unsigned char) + sizeof(PACKET_TYPE);
 		if (job.packet.size() < headerSize)
 			continue;
@@ -81,4 +75,52 @@ DWORD WINAPI worker_thread(LPVOID arg)
 		}
 	}
 	return 0;
+}
+
+void Logic()
+{
+	EnterCriticalSection(&cs);
+	const auto targets = clients;
+	LeaveCriticalSection(&cs);
+
+	for (const auto& source : targets) {
+		if (!source || source->player.PlayerID < 0)
+			continue;
+
+		source->player.Update();
+		S2C_SendPlayerMoveInfo(source->player.PlayerID, source->player.Pos_x, source->player.Pos_z);
+		S2C_SendOtherMoveInfo(source->player.PlayerID);
+	
+	}
+
+	CheckBulletPlayerCollision(clients);
+}
+
+void PlayerInfo::Update()
+{
+	int forwardInput = w - s;
+	int rightInput = d - a;
+
+	float forwardX = std::cos(yaw);
+	float forwardZ = std::sin(yaw);
+	float rightX = -forwardZ;
+	float rightZ = forwardX;
+
+	float nextX = Pos_x + moveSpeed * (forwardX * forwardInput + rightX * rightInput);
+	float nextZ = Pos_z + moveSpeed * (forwardZ * forwardInput + rightZ * rightInput);
+
+	const bool inBounds =
+		nextX >= -25.0f && nextX <= 25.0f &&
+		nextZ >= -25.0f && nextZ <= 25.0f;
+
+	if (inBounds && !CheckPlayerObstacleCollision(nextX, nextZ, BB.width * 0.5f)) {
+		Pos_x = nextX;
+		Pos_z = nextZ;
+		BB.center.x = nextX;
+		BB.center.z = nextZ;
+	}
+
+	for (auto bullet : bullets) {
+		bullet.Update();
+	}
 }
