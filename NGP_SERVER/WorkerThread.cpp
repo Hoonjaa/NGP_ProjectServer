@@ -77,7 +77,7 @@ DWORD WINAPI worker_thread(LPVOID arg)
 	return 0;
 }
 
-void Logic()
+void Logic(float dt)
 {
 	EnterCriticalSection(&cs);
 	const auto targets = clients;
@@ -87,7 +87,7 @@ void Logic()
 		if (!source || source->player.PlayerID < 0)
 			continue;
 
-		source->player.Update();
+		source->player.Update(dt);
 		S2C_SendPlayerMoveInfo(source->player.PlayerID, source->player.Pos_x, source->player.Pos_z);
 		S2C_SendOtherMoveInfo(source->player.PlayerID);
 	
@@ -96,7 +96,7 @@ void Logic()
 	CheckBulletPlayerCollision(clients);
 }
 
-void PlayerInfo::Update()
+void PlayerInfo::Update(float dt)
 {
 	int forwardInput = w - s;
 	int rightInput = d - a;
@@ -106,8 +106,8 @@ void PlayerInfo::Update()
 	float rightX = -forwardZ;
 	float rightZ = forwardX;
 
-	float nextX = Pos_x + moveSpeed * (forwardX * forwardInput + rightX * rightInput);
-	float nextZ = Pos_z + moveSpeed * (forwardZ * forwardInput + rightZ * rightInput);
+	float nextX = Pos_x + moveSpeed * (forwardX * forwardInput + rightX * rightInput) * dt;
+	float nextZ = Pos_z + moveSpeed * (forwardZ * forwardInput + rightZ * rightInput) * dt;
 
 	const bool inBounds =
 		nextX >= -25.0f && nextX <= 25.0f &&
@@ -121,6 +121,6 @@ void PlayerInfo::Update()
 	}
 
 	for (auto bullet : bullets) {
-		bullet.Update();
+		bullet.Update(dt);
 	}
 }

@@ -38,14 +38,14 @@ struct Bullet {
 	float speed = 50.0f;
 	float lifeTime = 5.0f;
 	float currentTime = 0.0f;
-	void Update()
+	void Update(float dt)
 	{
 		constexpr float tickSeconds = 1.0f / 60.0f;
 		const float distance = speed * tickSeconds;
 
-		position.x += direction.x * distance;
-		position.y += direction.y * distance;
-		position.z += direction.z * distance;
+		position.x += direction.x * distance * dt;
+		position.y += direction.y * distance * dt;
+		position.z += direction.z * distance * dt;
 
 		BB.center = position;
 		currentTime += tickSeconds;
@@ -107,6 +107,6 @@ struct PlayerInfo {
 	unsigned char a = 0;
 	unsigned char s = 0;
 	unsigned char d = 0;
-	float moveSpeed = 0.05f;
-	void Update();
+	float moveSpeed = 4;
+	void Update(float dt);
 };

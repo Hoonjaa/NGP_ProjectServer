@@ -4,4 +4,4 @@
 
 DWORD WINAPI worker_thread(LPVOID arg);
 
-void Logic();
+void Logic(float dt);
