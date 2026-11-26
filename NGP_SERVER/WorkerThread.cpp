@@ -33,7 +33,9 @@ DWORD WINAPI worker_thread(LPVOID arg)
 		std::cout << "Logic TPS: " << logicTimer.GetTPS() << std::endl;
 
 
-		workContainer->TryPop(job);
+		if (!workContainer->TryPop(job))
+			continue;
+
 		const auto headerSize = sizeof(unsigned char) + sizeof(PACKET_TYPE);
 		if (job.packet.size() < headerSize)
 			continue;
@@ -46,7 +48,7 @@ DWORD WINAPI worker_thread(LPVOID arg)
 			job.packet.data() + sizeof(unsigned char),
 			sizeof(packetType)
 		);
-		// Ignore gameplay packets until this connection has logged in.
+
 		if (packetType != C2S_LOGIN) {
 			bool loggedIn = false;
 			EnterCriticalSection(&cs);
@@ -63,7 +65,7 @@ DWORD WINAPI worker_thread(LPVOID arg)
 
 		switch (packetType)
 		{
-		case C2S_LOGIN:           C2S_RecvLoginInfo(job);          break;
+		case C2S_LOGIN:         C2S_RecvLoginInfo(job);          break;
 		case C2S_CHATINFO:		C2S_RecvChatInfo(job);			break;
 		case C2S_MOVEINFO:		C2S_RecvMoveInfo(job);			break;
 		case C2S_SHOOTINFO:		C2S_RecvShootIngInfo(job);		break;

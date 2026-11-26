@@ -106,6 +106,13 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         return 0;
     }
 
+    const DWORD noDelay = TRUE;
+    if (setsockopt(session->socket, IPPROTO_TCP, TCP_NODELAY,
+        reinterpret_cast<const char*>(&noDelay),
+        sizeof(noDelay)) == SOCKET_ERROR) {
+        printf("TCP_NODELAY failed: %d\n", WSAGetLastError());
+    }
+
 	// 반복 밖에 버퍼를 두어 수신과 송신을 번갈아 처리
     std::vector<unsigned char> pendingInput;
     std::vector<unsigned char> pendingOutput;
