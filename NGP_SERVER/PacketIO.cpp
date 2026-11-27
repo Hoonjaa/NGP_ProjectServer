@@ -92,13 +92,12 @@ void C2S_RecvMoveInfo(PacketJob job)
 	LeaveCriticalSection(&cs);
 	for (const auto& source : targets) {
 		if (!source || source->socket != job.client_sock) continue;
-		if (CheckPlayerObstacleCollision(response.x, response.z, source->player.BB.width*0.5f)) {
-			S2C_SendPlayerMoveInfo(response.player_id, source->player.Pos_x, source->player.Pos_z);
-			return;
-		}
-		source->player.SetPosition(response.x, response.z);
+		
+		source->player.w = response.w;
+		source->player.a = response.a;
+		source->player.s = response.s;
+		source->player.d = response.d;
 	}
-	S2C_SendOtherMoveInfo(response.player_id);
 }
 
 // ¿Á»∆
