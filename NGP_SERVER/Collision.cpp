@@ -16,23 +16,21 @@ void CheckBulletPlayerCollision(std::array<std::shared_ptr<ClientSession>, 3> cl
 				targetPlayer = target;
                 break;
             }
-
-            if (targetPlayer) {
-                if (targetPlayer->player.Mujuck_time > 0) {
-                    it = bullets.erase(it);
-                    int Damage = 10;
-                    if (targetPlayer->player.HP > Damage) {
-                        targetPlayer->player.HP -= Damage;
-                        S2C_SendPlayerHPInfo(targetPlayer->player.PlayerID, targetPlayer->player.HP);
-                    }
-                    else {
-                        targetPlayer->player.HP = 0;
-                        S2C_SendDeathInfo(targetPlayer->player.PlayerID, FirstPlayer->player.PlayerID);
-                    }
-                }
-            }
-            else {
+            if (!targetPlayer) {
                 ++it;
+                continue;
+            }
+            it = bullets.erase(it);
+            if (targetPlayer->player.Mujuck_time <= 0) {
+                int Damage = 20;
+                if (targetPlayer->player.HP > Damage) {
+                    targetPlayer->player.HP -= Damage;
+                    S2C_SendPlayerHPInfo(targetPlayer->player.PlayerID, targetPlayer->player.HP);
+                }
+                else {
+                    targetPlayer->player.HP = 0;
+                    S2C_SendDeathInfo(targetPlayer->player.PlayerID, FirstPlayer->player.PlayerID);
+                }
             }
         }
 	}
