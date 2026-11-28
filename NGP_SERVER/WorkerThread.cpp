@@ -92,7 +92,6 @@ void Logic()
 		source->player.Update();
 		S2C_SendPlayerMoveInfo(source->player.PlayerID, source->player.Pos_x, source->player.Pos_z);
 		S2C_SendOtherMoveInfo(source->player.PlayerID);
-	
 	}
 
 	CheckBulletPlayerCollision(clients);

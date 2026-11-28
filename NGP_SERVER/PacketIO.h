@@ -16,3 +16,5 @@ void S2C_SendDeathInfo(short player_id, short killer_id);
 void S2C_SendRespawnInfo(short player_id, float x, float y);
 void S2C_SendReleaseInvincibilityInfo(short player_id);
 void S2C_SendOtherForwardInfo();
+
+void S2C_SendOtherShootInfo(short player_id, float3 pos);

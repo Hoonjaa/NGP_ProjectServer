@@ -110,13 +110,16 @@ void C2S_RecvShootInfo(PacketJob job)
 	EnterCriticalSection(&cs);
 	auto targets = clients;
 	LeaveCriticalSection(&cs);
+
+	float3 pos = { response.x, response.y, response.z };
+	float3 dir = { response.dx, response.dy, response.dz };
 	for (const auto& source : targets) {
 		if (!source || source->socket != job.client_sock) continue;
-
-		float3 pos = { response.x, response.y, response.z };
-		float3 dir = { response.dx, response.dy, response.dz };
-
 		source->player.AddBullet(pos, dir);
+	}
+	for (const auto& source : targets) {
+		if (!source || source->socket == job.client_sock) continue;
+		S2C_SendOtherShootInfo(response.player_id, pos);
 	}
 }
 
@@ -329,6 +332,32 @@ void S2C_SendOtherForwardInfo()
 		response.player_id = static_cast<short>(player.PlayerID);
 		response.pitch = player.pitch;
 		response.yaw = player.yaw;
+		std::vector<unsigned char> responsepacket(sizeof(response));
+		std::memcpy(responsepacket.data(), &response, sizeof(response));
+		for (const auto& target : targets) {
+			if (target && target->player.PlayerID >= 0 && target != source) {
+				target->outgoing.job_push(responsepacket);
+			}
+		}
+	}
+}
+
+void S2C_SendOtherShootInfo(short player_id, float3 pos)
+{
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+
+	for (const auto& source : targets) {
+		if (!source || source->player.PlayerID < 0) continue;
+		const auto& player = source->player;
+		S2C_OtherShootInfo response{};
+		response.size = sizeof(response);
+		response.type = S2C_OTHERSHOOTINFO;
+		response.player_id = static_cast<short>(player.PlayerID);
+		response.x = pos.x;
+		response.y = pos.y;
+		response.z = pos.z;
 		std::vector<unsigned char> responsepacket(sizeof(response));
 		std::memcpy(responsepacket.data(), &response, sizeof(response));
 		for (const auto& target : targets) {
