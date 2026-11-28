@@ -136,10 +136,12 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     }
     
     session->outgoing.Stop();
-    EnterCriticalSection(&cs);
-    clients[slot].reset();
-    LeaveCriticalSection(&cs);
-
-    closesocket(session->socket);
+    // The worker releases the slot and closes the socket after earlier jobs.
+    if (!session->workContainer->job_push({session->socket, {}, PacketJob::Kind::Disconnect})) {
+        EnterCriticalSection(&cs);
+        clients[slot].reset();
+        LeaveCriticalSection(&cs);
+        closesocket(session->socket);
+    }
     return 0;
 }

@@ -28,6 +28,13 @@ int main()
 	JobContainer<PacketJob> Work_Container; // 클라별 스레드들이 패킷을 받으면 이 컨테이너에 작업을 넣음. 작업 스레드가 이 컨테이너에서 작업을 꺼내 처리함.
 	HANDLE worker = CreateThread(NULL, 0, worker_thread, &Work_Container, 0, NULL); //작업 스레드 생성
 
+    if (worker == nullptr) {
+        closesocket(listen_sock);
+        DeleteCriticalSection(&cs);
+        WSACleanup();
+        return 1;
+    }
+
     while (1) {
 		// 종료된 스레드 핸들 닫고 벡터에서 제거
 		for (auto it = threads.begin(); it != threads.end();) {
@@ -64,6 +71,10 @@ int main()
         WaitForSingleObject(hThread, INFINITE);
         CloseHandle(hThread);
     }
+
+    Work_Container.job_push({INVALID_SOCKET, {}, PacketJob::Kind::Stop});
+    WaitForSingleObject(worker, INFINITE);
+    CloseHandle(worker);
 
     DeleteCriticalSection(&cs);
     WSACleanup();

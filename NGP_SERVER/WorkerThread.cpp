@@ -37,6 +37,13 @@ DWORD WINAPI worker_thread(LPVOID arg)
 		if (!workContainer->TryPop(job))
 			continue;
 
+		if (job.kind == PacketJob::Kind::Stop)
+			break;
+		if (job.kind == PacketJob::Kind::Disconnect) {
+			S2C_LogoutClient(job.client_sock);
+			continue;
+		}
+
 		const auto headerSize = sizeof(unsigned char) + sizeof(PACKET_TYPE);
 		if (job.packet.size() < headerSize)
 			continue;
@@ -95,7 +102,7 @@ void Logic()
 		S2C_SendOtherMoveInfo(source->player.PlayerID);
 	}
 
-	CheckBulletPlayerCollision(clients);
+	CheckBulletPlayerCollision(targets);
 }
 
 

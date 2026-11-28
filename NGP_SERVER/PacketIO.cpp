@@ -4,6 +4,8 @@
 #include "Collision.h"
 #include "SpawnPoints.h"
 
+
+
 void C2S_RecvLoginInfo(PacketJob job) 
 {
 	if (job.packet.size() != sizeof(C2S_Login)) return;
@@ -411,5 +413,42 @@ void S2C_SendBulletDeleteInfo(short player_id, unsigned int index)
 		if (target && target->player.PlayerID >= 0) {
 			target->outgoing.job_push(responsePacket);
 		}
+	}
+}
+
+void S2C_LogoutClient(SOCKET socket)
+{
+	std::shared_ptr<ClientSession> disconnected;
+
+	EnterCriticalSection(&cs);
+	for (auto& session : clients) {
+		if (session && session->socket == socket) {
+			disconnected.swap(session);
+			break;
+		}
+	}
+	const auto targets = clients;
+	LeaveCriticalSection(&cs);
+
+	if (!disconnected) return;
+	closesocket(socket);
+
+	for (auto* bullet : disconnected->player.bullets)
+		delete bullet;
+	disconnected->player.bullets.clear();
+
+	const short playerId = disconnected->player.PlayerID;
+	if (playerId < 0) return;
+
+	S2C_OtherLogout packet{};
+	packet.size = static_cast<unsigned char>(sizeof(packet));
+	packet.type = S2C_OTHERLOGOUT;
+	packet.player_id = playerId;
+	const auto* begin = reinterpret_cast<const unsigned char*>(&packet);
+	const std::vector<unsigned char> bytes(begin, begin + sizeof(packet));
+
+	for (const auto& target : targets) {
+		if (target && target->player.PlayerID >= 0)
+			target->outgoing.job_push(bytes);
 	}
 }

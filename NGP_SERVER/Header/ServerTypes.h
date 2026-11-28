@@ -10,6 +10,9 @@ struct PacketJob { // 클라이언트별 스레드가 패킷을 받으면 이 구조체에 넣어 작업 
 	// 반대로 패킷만 넘기면 작업 스레드가 패킷을 처리할 때 어떤 클라이언트 소켓인지 알 수 없기 때문에 구조체를 만들어서 같이 넘김.
     SOCKET client_sock; 
     std::vector<unsigned char> packet;
+
+    enum class Kind { Packet, Disconnect, Stop };
+    Kind kind = Kind::Packet;
 };
 
 struct ClientSession { // 작업스레드가 패킷을 처리한 후 클라이언트별 스레드가 이 큐에서 패킷을 꺼내 클라이언트로 전송하기 위해 사용
