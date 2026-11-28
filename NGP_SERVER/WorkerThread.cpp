@@ -4,6 +4,7 @@
 #include "Header/Common.h"
 #include "PacketIO.h"
 #include "Timer.h"
+#include "SpawnPoints.h"
 #include "Collision.h"
 #include <type_traits>
 #include <cstring>
@@ -97,6 +98,8 @@ void Logic()
 	CheckBulletPlayerCollision(clients);
 }
 
+
+
 void PlayerInfo::Update()
 {
 	int forwardInput = w - s;
@@ -119,6 +122,37 @@ void PlayerInfo::Update()
 		Pos_z = nextZ;
 		BB.center.x = nextX;
 		BB.center.z = nextZ;
+	}
+
+	if (Mujuck_time > 0) {
+		if (Mujuck_time > 1.0f / 60.0f) {
+			Mujuck_time -= 1.0f / 60.0f;
+		}
+		else {
+			Mujuck_time = 0;
+			S2C_SendReleaseInvincibilityInfo(PlayerID);
+		}
+	}
+	if (!isalive && Respawn_time > 0) {
+		if (Respawn_time > 1.0f / 60.0f) {
+			Respawn_time -= 1.0f / 60.0f;
+		}
+		else {
+			std::array<SpawnPoint, 5> Points{ {
+				{-20.0f, -20.0f},
+				{ 20.0f, -15.0f},
+				{ 10.0f,  20.0f},
+				{-15.0f,  15.0f},
+				{  5.0f,   5.0f},
+			} };
+			Respawn_time = 0;
+			Mujuck_time = 3.0f;
+			isalive = true;
+			HP = 200;
+			SpawnPoint spawn = Points[rand() % 5];
+			SetPosition(spawn.x, spawn.z);
+			S2C_SendRespawnInfo(PlayerID, Pos_x, Pos_z);
+		}
 	}
 
 	for (auto it = bullets.begin(); it != bullets.end(); ) {

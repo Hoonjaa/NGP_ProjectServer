@@ -15,12 +15,15 @@ struct BoundingBox {
 	float3 center;
 	float width;
 	float height;
-	BoundingBox() : center(0, 0, 0), width(1.0f), height(1.0f) {}
+	float depth;
+	BoundingBox() : center(0, 0, 0), width(1.0f), height(1.0f), depth(1.0f) {}
 	BoundingBox(float3 center, float w, float h) : center(center), width(w), height(h) {}
+	BoundingBox(float3 center, float w, float h, float d) : center(center), width(w), height(h), depth(d) {}
 
 	bool Intersects(const BoundingBox& other) const {
 		return (std::abs(center.x - other.center.x) * 2 < (width + other.width)) &&
-			   (std::abs(center.y - other.center.y) * 2 < (height + other.height));
+			   (std::abs(center.y - other.center.y) * 2 < (height + other.height)) &&
+				(std::abs(center.z - other.center.z) * 2 < (depth + other.depth));
 	}
 	
 };
@@ -61,12 +64,14 @@ struct PlayerInfo {
 	{
 		PlayerID = -1; // Not logged in yet.
 		name[0] = '\0';
+		isalive = true;
 
 		Pos_x = 0.0f; //임시
 		Pos_z = 6.0f; //임시
 		BB.center = float3(Pos_x, 2.5f, Pos_z);
 		BB.width = 3.0f;
 		BB.height = 5.0f;
+		BB.depth = 3.0f;
 
 		HP = 200;
 		Kill = 0;
@@ -78,6 +83,8 @@ struct PlayerInfo {
 		Respawn_time = 0;
 		Mujuck_time = 0;
 	}
+	bool	isalive;
+
 	short	PlayerID;
 	char	name[10];
 

@@ -4,13 +4,13 @@
 void CheckBulletPlayerCollision(std::array<std::shared_ptr<ClientSession>, 3> clients)
 {
 	for (std::shared_ptr<ClientSession> FirstPlayer : clients) {
-		if (!FirstPlayer) continue;
+		if (!FirstPlayer || !FirstPlayer->player.isalive) continue;
         auto& bullets = FirstPlayer->player.bullets;
 
         for (auto it = bullets.begin(); it != bullets.end(); ) {
 			std::shared_ptr<ClientSession> targetPlayer = nullptr;
             for (const auto& target : clients) {
-                if (!target || target == FirstPlayer) continue;
+                if (!target || target == FirstPlayer || !target->player.isalive) continue;
                 if (!(*it)->BB.Intersects(target->player.BB)) continue;
 
 				targetPlayer = target;
@@ -32,6 +32,10 @@ void CheckBulletPlayerCollision(std::array<std::shared_ptr<ClientSession>, 3> cl
                 }
                 else {
                     targetPlayer->player.HP = 0;
+					targetPlayer->player.isalive = false;
+					FirstPlayer->player.Kill++;
+					targetPlayer->player.Death++;
+					targetPlayer->player.Respawn_time = 5.0f;
                     S2C_SendDeathInfo(targetPlayer->player.PlayerID, FirstPlayer->player.PlayerID);
                 }
             }
