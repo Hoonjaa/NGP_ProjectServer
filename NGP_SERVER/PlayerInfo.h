@@ -28,7 +28,9 @@ struct BoundingBox {
 struct Bullet {
 	Bullet() : position(0, 0, 0) {}
 	Bullet(float3 pos) : position(pos) {}
+	Bullet(float3 pos, float3 dir) : position(pos), direction(dir) {}
 	Bullet(float3 pos, BoundingBox BB) : position(pos), BB(BB) {}
+	Bullet(float3 pos, BoundingBox BB, float3 dir) : position(pos), BB(BB), direction(dir) {}
 	float3 position;
 	BoundingBox BB;
 	BoundingBox GetBB() const {	return BB;}
@@ -95,7 +97,13 @@ struct PlayerInfo {
 	float	Respawn_time;
 	float	Mujuck_time;
 
-	std::vector<Bullet> bullets;
+	std::vector<Bullet*> bullets;
+	void AddBullet(float3 pos, float3 dir)
+	{
+		Bullet* b = new Bullet(pos, dir);
+		bullets.push_back(b);
+	}
+
 	BoundingBox BB;
 
 	void SetPosition(float x, float z)

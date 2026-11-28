@@ -11,7 +11,7 @@ void CheckBulletPlayerCollision(std::array<std::shared_ptr<ClientSession>, 3> cl
 			std::shared_ptr<ClientSession> targetPlayer = nullptr;
             for (const auto& target : clients) {
                 if (!target || target == FirstPlayer) continue;
-                if (!it->BB.Intersects(target->player.BB)) continue;
+                if (!(*it)->BB.Intersects(target->player.BB)) continue;
 
 				targetPlayer = target;
                 break;
@@ -20,6 +20,7 @@ void CheckBulletPlayerCollision(std::array<std::shared_ptr<ClientSession>, 3> cl
                 ++it;
                 continue;
             }
+            delete* it;
             it = bullets.erase(it);
             if (targetPlayer->player.Mujuck_time <= 0) {
                 int Damage = 20;

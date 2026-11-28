@@ -68,7 +68,7 @@ DWORD WINAPI worker_thread(LPVOID arg)
 		case C2S_LOGIN:         C2S_RecvLoginInfo(job);          break;
 		case C2S_CHATINFO:		C2S_RecvChatInfo(job);			break;
 		case C2S_MOVEINFO:		C2S_RecvMoveInfo(job);			break;
-		case C2S_SHOOTINFO:		C2S_RecvShootIngInfo(job);		break;
+		case C2S_SHOOTINFO:		C2S_RecvShootInfo(job);			break;
 		case C2S_FORWARDINFO:	C2S_RecvForwardInfo(job);		break;
 		case C2S_RELOADING:		C2S_RecvReloadingInfo(job);		break;
 		
@@ -122,7 +122,16 @@ void PlayerInfo::Update()
 		BB.center.z = nextZ;
 	}
 
-	for (auto bullet : bullets) {
-		bullet.Update();
+	for (auto it = bullets.begin(); it != bullets.end(); ) {
+		Bullet* bullet = *it;
+		bullet->Update();
+
+		if (bullet->currentTime >= bullet->lifeTime) {
+			delete bullet;
+			it = bullets.erase(it);
+		}
+		else {
+			++it;
+		}
 	}
 }

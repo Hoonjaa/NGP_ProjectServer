@@ -101,7 +101,24 @@ void C2S_RecvMoveInfo(PacketJob job)
 }
 
 // ¿Á»∆
-void C2S_RecvShootIngInfo(PacketJob job) {}
+void C2S_RecvShootInfo(PacketJob job) 
+{
+	if (job.packet.size() != sizeof(C2S_ShootInfo)) return;
+	C2S_ShootInfo response{};
+	std::memcpy(&response, job.packet.data(), sizeof(response));
+
+	EnterCriticalSection(&cs);
+	auto targets = clients;
+	LeaveCriticalSection(&cs);
+	for (const auto& source : targets) {
+		if (!source || source->socket != job.client_sock) continue;
+
+		float3 pos = { response.x, response.y, response.z };
+		float3 dir = { response.dx, response.dy, response.dz };
+
+		source->player.AddBullet(pos, dir);
+	}
+}
 
 // πŒ¡¶
 void C2S_RecvChatInfo(PacketJob job)
