@@ -18,3 +18,5 @@ void S2C_SendReleaseInvincibilityInfo(short player_id);
 void S2C_SendOtherForwardInfo();
 
 void S2C_SendOtherShootInfo(short player_id, float3 pos);
+void S2C_SendBulletMoveInfo(short player_id, unsigned int index, float3 pos);
+void S2C_SendBulletDeleteInfo(short player_id, unsigned int index);

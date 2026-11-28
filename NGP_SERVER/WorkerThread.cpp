@@ -125,12 +125,16 @@ void PlayerInfo::Update()
 		Bullet* bullet = *it;
 		bullet->Update();
 
+		const auto index = static_cast<unsigned int>(it - bullets.begin());
+
 		if (bullet->currentTime >= bullet->lifeTime) {
+			S2C_SendBulletDeleteInfo(PlayerID, index);
 			delete bullet;
 			it = bullets.erase(it);
+			continue;
 		}
-		else {
-			++it;
-		}
+
+		S2C_SendBulletMoveInfo(PlayerID, index, bullet->position);
+		++it;
 	}
 }

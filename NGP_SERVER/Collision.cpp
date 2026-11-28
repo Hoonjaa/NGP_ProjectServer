@@ -20,6 +20,8 @@ void CheckBulletPlayerCollision(std::array<std::shared_ptr<ClientSession>, 3> cl
                 ++it;
                 continue;
             }
+            const auto index = static_cast<unsigned int>(it - bullets.begin());
+            S2C_SendBulletDeleteInfo(FirstPlayer->player.PlayerID, index);
             delete* it;
             it = bullets.erase(it);
             if (targetPlayer->player.Mujuck_time <= 0) {

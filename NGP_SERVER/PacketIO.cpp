@@ -114,12 +114,13 @@ void C2S_RecvShootInfo(PacketJob job)
 	float3 pos = { response.x, response.y, response.z };
 	float3 dir = { response.dx, response.dy, response.dz };
 	for (const auto& source : targets) {
-		if (!source || source->socket != job.client_sock) continue;
+		if (!source || source->socket != job.client_sock || source->player.PlayerID < 0) {
+			continue;
+		}
+
 		source->player.AddBullet(pos, dir);
-	}
-	for (const auto& source : targets) {
-		if (!source || source->socket == job.client_sock) continue;
-		S2C_SendOtherShootInfo(response.player_id, pos);
+		S2C_SendOtherShootInfo(source->player.PlayerID, pos);
+		return;
 	}
 }
 
@@ -345,25 +346,70 @@ void S2C_SendOtherForwardInfo()
 void S2C_SendOtherShootInfo(short player_id, float3 pos)
 {
 	EnterCriticalSection(&cs);
-	auto targets = clients;
+	const auto targets = clients;
 	LeaveCriticalSection(&cs);
 
-	for (const auto& source : targets) {
-		if (!source || source->player.PlayerID < 0) continue;
-		const auto& player = source->player;
-		S2C_OtherShootInfo response{};
-		response.size = sizeof(response);
-		response.type = S2C_OTHERSHOOTINFO;
-		response.player_id = static_cast<short>(player.PlayerID);
-		response.x = pos.x;
-		response.y = pos.y;
-		response.z = pos.z;
-		std::vector<unsigned char> responsepacket(sizeof(response));
-		std::memcpy(responsepacket.data(), &response, sizeof(response));
-		for (const auto& target : targets) {
-			if (target && target->player.PlayerID >= 0 && target != source) {
-				target->outgoing.job_push(responsepacket);
-			}
+	S2C_OtherShootInfo response{};
+	response.size = static_cast<unsigned char>(sizeof(response));
+	response.type = S2C_OTHERSHOOTINFO;
+	response.player_id = player_id;
+	response.x = pos.x;
+	response.y = pos.y;
+	response.z = pos.z;
+
+	std::vector<unsigned char> bytes(sizeof(response));
+	std::memcpy(bytes.data(), &response, sizeof(response));
+
+	for (const auto& target : targets) {
+		if (target && target->player.PlayerID >= 0 && target->player.PlayerID != player_id) {
+			target->outgoing.job_push(bytes);
+		}
+	}
+}
+
+void S2C_SendBulletMoveInfo(short player_id, unsigned int index, float3 pos)
+{
+	EnterCriticalSection(&cs);
+	const auto targets = clients;
+	LeaveCriticalSection(&cs);
+
+	S2C_BulletMove response{};
+	response.size = static_cast<unsigned char>(sizeof(response));
+	response.type = S2C_BULLETMOVE;
+	response.player_id = player_id;
+	response.index = index;
+	response.x = pos.x;
+	response.y = pos.y;
+	response.z = pos.z;
+
+	std::vector<unsigned char> responsePacket(sizeof(response));
+	std::memcpy(responsePacket.data(), &response, sizeof(response));
+
+	for (const auto& target : targets) {
+		if (target && target->player.PlayerID >= 0) {
+			target->outgoing.job_push(responsePacket);
+		}
+	}
+}
+
+void S2C_SendBulletDeleteInfo(short player_id, unsigned int index)
+{
+	EnterCriticalSection(&cs);
+	const auto targets = clients;
+	LeaveCriticalSection(&cs);
+
+	S2C_BulletDelete response{};
+	response.size = static_cast<unsigned char>(sizeof(response));
+	response.type = S2C_BULLETDELETE;
+	response.player_id = player_id;
+	response.index = index;
+
+	std::vector<unsigned char> responsePacket(sizeof(response));
+	std::memcpy(responsePacket.data(), &response, sizeof(response));
+
+	for (const auto& target : targets) {
+		if (target && target->player.PlayerID >= 0) {
+			target->outgoing.job_push(responsePacket);
 		}
 	}
 }
